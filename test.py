@@ -1,30 +1,27 @@
-from gpiozero import AngularServo
+from gpiozero import Servo
 from time import sleep
 
-servo = AngularServo(
-    18,
-    min_angle=0,
-    max_angle=180,  # most hobby servos can't actually do 360°
-    min_pulse_width=0.5/1000,
-    max_pulse_width=2.5/1000
-)
-
-def set_angle(angle):
-    servo.angle = angle
-    sleep(1)
+# Continuous rotation servo on GPIO 18
+servo = Servo(18, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000)
 
 try:
     while True:
-        angle_input = input("Enter angle (0-180) or 'q' to quit: ").strip()
-        if angle_input.lower() == "q":
+        cmd = input("Enter command (f=forward, b=back, s=stop, q=quit): ").strip().lower()
+
+        if cmd == "f":
+            servo.value = 1    # full forward
+        elif cmd == "b":
+            servo.value = -1   # full backward
+        elif cmd == "s":
+            servo.value = 0    # stop
+        elif cmd == "q":
+            servo.value = 0
             break
-        try:
-            angle = int(angle_input)
-            if 0 <= angle <= 180:
-                set_angle(angle)
-            else:
-                print("Please enter a value between 0 and 180.")
-        except ValueError:
-            print("Invalid input. Please enter a number or 'q'.")
+        else:
+            print("Unknown command. Use f/b/s/q.")
+
 except KeyboardInterrupt:
-    print("\nProgram stopped by user.")
+    pass
+
+finally:
+    servo.value = 0  # make sure it stops
